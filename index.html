@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Proyecto — Redes TSJ La Rioja</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-box">
+    <div class="auth-logo">🌐</div>
+    <h2>Ingreso al panel</h2>
+    <p>Seleccioná un usuario para continuar</p>
+
+    <form id="login-form" class="auth-form">
+      <label class="field">
+        <div class="label">Usuario</div>
+        <input id="login-user" type="text" class="input" placeholder="Ingresá tu usuario">
+      </label>
+
+      <label class="field">
+        <div class="label">Contraseña</div>
+        <input id="login-pass" type="password" class="input" placeholder="Ingresá la contraseña">
+      </label>
+
+      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Ingresar</button>
+    </form>
+
+    <div class="auth-hint">
+      Ingresá tu usuario y contraseña asignados por el jefe de redes.
+    </div>
+  </div>
+</div>
+
+<div id="app-shell" class="app-shell hidden">
+
+<!-- SIDEBAR -->
+<aside class="sb">
+  <div class="sb-top">
+    <div class="sb-logo">
+      <div class="logo-ico">🌐</div>
+      <div>
+        <div class="logo-name">Panel de Redes</div>
+        <div class="logo-sub">TSJ La Rioja</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sb-section">Navegación</div>
+  <nav class="sb-nav">
+    <div class="nav-item on" onclick="go('resumen',this)">
+      <svg class="n-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+      Resumen
+    </div>
+    <div class="nav-item" onclick="go('tareas',this)">
+      <svg class="n-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="14" height="14" rx="2"/><path d="M5 8l2 2 4-4"/></svg>
+      Tablero de Tareas
+      <span class="n-badge warn" id="badge-tareas">0</span>
+    </div>
+    <div class="nav-item" onclick="go('observaciones',this)">
+      <svg class="n-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 2h12v9H9l-3 3v-3H2V2z"/></svg>
+      Obs. del Jefe de Redes
+      <span class="n-badge red" id="badge-obs">0</span>
+    </div>
+    <div class="nav-item" onclick="go('avance',this)">
+      <svg class="n-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12L6 8l3 3 5-6"/><path d="M10 6h4v4"/></svg>
+      Avance General
+    </div>
+  </nav>
+
+  <div class="sb-footer">
+    <div class="sb-prog-label">
+      <span>Progreso total</span>
+      <span id="sb-pct">0%</span>
+    </div>
+    <div class="prog-track">
+      <div class="prog-fill" id="sb-prog" style="width:0%"></div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <button class="btn btn-ghost btn-sm" onclick="openConfig()" title="Configurar proyecto" style="margin-right:4px">⚙️</button>
+    <button id="btn-user-admin" class="btn btn-ghost btn-sm" onclick="openUserModal()" title="Administrar usuarios" style="margin-right:4px">👥 Usuarios</button>
+    <button id="theme-toggle-btn" class="btn btn-ghost btn-sm" onclick="toggleTheme()" title="Cambiar tema" style="margin-right:4px">☀️ Claro</button>
+    <div class="topbar-title" id="topbar-title">
+      Resumen <span>— Proyecto de Redes TSJ La Rioja</span>
+    </div>
+    <div class="topbar-user-wrap">
+      <span id="topbar-user">Usuario</span>
+      <button class="btn btn-ghost btn-sm" onclick="logoutUser()">Salir</button>
+    </div>
+    <button id="btn-export-excel" class="btn btn-ghost btn-sm" onclick="exportToExcel()">📊 Exportar Excel</button>
+    <button id="btn-export-pdf" class="btn btn-ghost btn-sm" onclick="exportToPDF()">📄 Generar PDF</button>
+    <button class="btn btn-ghost btn-sm" onclick="openObsModal()">+ Observación</button>
+    <button class="btn btn-primary btn-sm" onclick="openTaskModal()">+ Nueva Tarea</button>
+  </div>
+
+  <div class="content">
+
+  <!-- RESUMEN -->
+  <div class="sec on" id="sec-resumen">
+
+    <div class="hero">
+      <div class="hero-t" id="hero-title">Proyecto de Redes — Área de Sistemas</div>
+      <div class="hero-s" id="hero-sub">Gestión integral de tareas e infraestructura de red del TSJ de La Rioja</div>
+      <div class="hero-m">
+        <div class="hero-mi"><strong>Responsable</strong> <span id="hero-resp">—</span></div>
+        <div class="hero-mi"><strong>Jefe de Redes</strong> <span id="hero-jefe">—</span></div>
+        <div class="hero-mi"><strong>Inicio</strong> <span id="hero-inicio">—</span></div>
+        <div class="hero-mi"><strong>Fecha límite</strong> <span id="hero-fin">—</span></div>
+      </div>
+    </div>
+
+    <div class="mini-kanban">
+      <div class="mk-col c1"><div class="mk-num" id="r-todo">0</div><div class="mk-lab">Pendientes</div></div>
+      <div class="mk-col c2"><div class="mk-num" id="r-prog">0</div><div class="mk-lab">En Progreso</div></div>
+      <div class="mk-col c3"><div class="mk-num" id="r-obs">0</div><div class="mk-lab">Observadas</div></div>
+      <div class="mk-col c4"><div class="mk-num" id="r-done">0</div><div class="mk-lab">Completadas</div></div>
+    </div>
+
+    <div id="due-alerts" class="alerts-panel"></div>
+
+    <div class="divider"></div>
+
+    <div class="stb">
+      <div><div class="st">Resumen de Tareas Activas</div><div class="ss">Últimas tareas no completadas</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="go('tareas', document.querySelector('.nav-item:nth-child(2)'))">Ver tablero →</button>
+    </div>
+
+    <div class="tw" id="resumen-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Tarea</th>
+            <th>Área</th>
+            <th>Prioridad</th>
+            <th>Estado</th>
+            <th>Vencimiento</th>
+            <th>Asignado a</th>
+          </tr>
+        </thead>
+        <tbody id="resumen-tbody">
+          <tr><td colspan="6" class="empty">No hay tareas registradas aún.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="divider"></div>
+    <div class="stb">
+      <div><div class="st">Observaciones Recientes</div><div class="ss">Últimas 3 del Jefe de Redes</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="go('observaciones', document.querySelector('.nav-item:nth-child(3)'))">Ver todas →</button>
+    </div>
+    <div id="resumen-obs-list"><div class="empty"><div class="empty-icon">💬</div>Sin observaciones registradas.</div></div>
+
+    <div class="divider"></div>
+    <div class="stb">
+      <div><div class="st">Actividad Reciente</div><div class="ss">Últimos cambios del tablero</div></div>
+    </div>
+    <div id="activity-feed" class="activity-panel"></div>
+
+  </div>
+
+  <!-- TAREAS (KANBAN) -->
+  <div class="sec" id="sec-tareas">
+
+    <div class="stb">
+      <div><div class="st">Tablero de Tareas</div><div class="ss">Arrastrá las tarjetas entre columnas para actualizar el estado</div></div>
+      <button class="btn btn-primary btn-sm" onclick="openTaskModal()">+ Nueva Tarea</button>
+    </div>
+
+    <div class="task-filters">
+      <select id="task-filter-status" class="input small-input" onchange="applyTaskFilters()">
+        <option value="all">Todos los estados</option>
+        <option value="todo">Pendientes</option>
+        <option value="prog">En progreso</option>
+        <option value="obs">Observadas</option>
+        <option value="done">Completadas</option>
+      </select>
+      <select id="task-filter-priority" class="input small-input" onchange="applyTaskFilters()">
+        <option value="all">Todas las prioridades</option>
+        <option value="alta">Alta</option>
+        <option value="media">Media</option>
+        <option value="baja">Baja</option>
+      </select>
+      <select id="task-filter-area" class="input small-input" onchange="applyTaskFilters()">
+        <option value="all">Todas las áreas</option>
+      </select>
+      <select id="task-filter-owner" class="input small-input" onchange="applyTaskFilters()">
+        <option value="all">Todos los responsables</option>
+      </select>
+      <button class="btn btn-ghost btn-sm" onclick="resetTaskFilters()">Limpiar</button>
+    </div>
+
+    <div class="kanban">
+      <div class="k-col">
+        <div class="k-col-head">
+          <div class="k-col-dot" style="background:var(--muted)"></div>
+          <div class="k-col-name">Pendiente</div>
+          <div class="k-col-count" id="cnt-todo">0</div>
+        </div>
+        <div class="k-col-body" id="col-todo" data-col="todo"
+             ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'todo')">
+          <button class="k-add-btn" onclick="openTaskModal('todo')">+ Agregar tarea</button>
+        </div>
+      </div>
+      <div class="k-col">
+        <div class="k-col-head">
+          <div class="k-col-dot" style="background:var(--accent)"></div>
+          <div class="k-col-name">En Progreso</div>
+          <div class="k-col-count" id="cnt-prog">0</div>
+        </div>
+        <div class="k-col-body" id="col-prog" data-col="prog"
+             ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'prog')">
+          <button class="k-add-btn" onclick="openTaskModal('prog')">+ Agregar tarea</button>
+        </div>
+      </div>
+      <div class="k-col">
+        <div class="k-col-head">
+          <div class="k-col-dot" style="background:var(--red)"></div>
+          <div class="k-col-name">Observada</div>
+          <div class="k-col-count" id="cnt-obs">0</div>
+        </div>
+        <div class="k-col-body" id="col-obs" data-col="obs"
+             ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'obs')">
+          <button class="k-add-btn" onclick="openTaskModal('obs')">+ Agregar tarea</button>
+        </div>
+      </div>
+      <div class="k-col">
+        <div class="k-col-head">
+          <div class="k-col-dot" style="background:var(--green)"></div>
+          <div class="k-col-name">Completada</div>
+          <div class="k-col-count" id="cnt-done">0</div>
+        </div>
+        <div class="k-col-body" id="col-done" data-col="done"
+             ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event,'done')">
+          <button class="k-add-btn" onclick="openTaskModal('done')">+ Agregar tarea</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OBSERVACIONES -->
+  <div class="sec" id="sec-observaciones">
+    <div class="stb">
+      <div><div class="st">Observaciones del Jefe de Redes</div><div class="ss">Registros de feedback y correcciones</div></div>
+      <button class="btn btn-primary btn-sm" onclick="openObsModal()">+ Nueva Observación</button>
+    </div>
+
+    <div class="stat-grid">
+      <div class="sc red"><div class="sc-label">Pendientes</div><div class="sc-val" id="obs-cnt-pend">0</div><div class="sc-sub">sin resolver</div></div>
+      <div class="sc warn"><div class="sc-label">En proceso</div><div class="sc-val" id="obs-cnt-prog">0</div><div class="sc-sub">siendo revisadas</div></div>
+      <div class="sc green"><div class="sc-label">Resueltas</div><div class="sc-val" id="obs-cnt-res">0</div><div class="sc-sub">cerradas</div></div>
+      <div class="sc blue"><div class="sc-label">Total</div><div class="sc-val" id="obs-cnt-tot">0</div><div class="sc-sub">observaciones</div></div>
+    </div>
+
+    <div id="obs-list-full"><div class="empty"><div class="empty-icon">💬</div>No hay observaciones registradas todavía.</div></div>
+  </div>
+
+  <!-- AVANCE -->
+  <div class="sec" id="sec-avance">
+    <div class="stb">
+      <div><div class="st">Avance General del Proyecto</div><div class="ss">Progreso calculado automáticamente según tareas completadas</div></div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="sc blue"><div class="sc-label">Avance total</div><div class="sc-val" id="av-pct-big">0%</div><div class="sc-sub">del proyecto</div></div>
+      <div class="sc green"><div class="sc-label">Completadas</div><div class="sc-val" id="av-done">0</div><div class="sc-sub">tareas</div></div>
+      <div class="sc warn"><div class="sc-label">En progreso</div><div class="sc-val" id="av-prog">0</div><div class="sc-sub">tareas activas</div></div>
+      <div class="sc red"><div class="sc-label">Observadas</div><div class="sc-val" id="av-obs">0</div><div class="sc-sub">requieren revisión</div></div>
+    </div>
+
+    <div class="av-card">
+      <div class="av-head">
+        <div class="av-name">Progreso general del tablero</div>
+        <div class="av-pct" id="av-big-pct">0%</div>
+      </div>
+      <div class="av-bar"><div class="av-fill" id="av-big-bar" style="width:0%;background:var(--accent)"></div></div>
+      <div class="av-meta">
+        <div class="av-meta-item"><strong>Total de tareas</strong><span id="av-total">0</span></div>
+        <div class="av-meta-item"><strong>Completadas</strong><span id="av-done2">0</span></div>
+        <div class="av-meta-item"><strong>Pendientes</strong><span id="av-pend">0</span></div>
+        <div class="av-meta-item"><strong>Observadas</strong><span id="av-obs2">0</span></div>
+      </div>
+    </div>
+
+    <div class="stb" style="margin-top:20px">
+      <div><div class="st">Avance por Área / Categoría</div></div>
+    </div>
+    <div id="av-by-area"></div>
+
+    <div class="tw" style="margin-top:20px">
+      <div class="tw-head"><span style="font-weight:600;font-size:14px">Historial de Tareas Completadas</span></div>
+      <table>
+        <thead>
+          <tr><th>Tarea</th><th>Área</th><th>Prioridad</th><th>Completada</th><th>Asignado a</th></tr>
+        </thead>
+        <tbody id="av-done-list">
+          <tr><td colspan="5" class="empty">Sin tareas completadas aún.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  </div>
+</main>
+</div>
+
+<!-- MODAL NUEVA TAREA -->
+<div class="modal-overlay" id="modal-task">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Nueva Tarea</div>
+      <button class="modal-close" onclick="closeModal('modal-task')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <div class="label">Título de la tarea *</div>
+        <input class="input" id="t-title" placeholder="Ej: Configurar VLAN en switch capa 3…" maxlength="100">
+      </div>
+      <div class="field">
+        <div class="label">Descripción</div>
+        <textarea class="input" id="t-desc" placeholder="Detalle adicional de la tarea…"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <div class="label">Área / Categoría *</div>
+          <select class="input" id="t-area">
+            <option value="">Seleccionar…</option>
+            <option>Infraestructura LAN</option>
+            <option>Infraestructura WAN</option>
+            <option>Seguridad de Red</option>
+            <option>Servidores</option>
+            <option>Conectividad WiFi</option>
+            <option>Cableado estructurado</option>
+            <option>Monitoreo y NOC</option>
+            <option>VoIP</option>
+            <option>Backup y Recuperación</option>
+            <option>Documentación</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="label">Prioridad *</div>
+          <select class="input" id="t-prio">
+            <option value="alta">🔴 Alta</option>
+            <option value="media" selected>🟡 Media</option>
+            <option value="baja">🟢 Baja</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <div class="label">Estado inicial</div>
+          <select class="input" id="t-status">
+            <option value="todo">Pendiente</option>
+            <option value="prog">En Progreso</option>
+            <option value="obs">Observada</option>
+            <option value="done">Completada</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="label">Fecha de vencimiento</div>
+          <input type="date" class="input" id="t-due">
+        </div>
+      </div>
+      <div class="field">
+        <div class="label">Asignado a</div>
+        <select class="input" id="t-assign">
+          <option value="">Sin asignar</option>
+          <option value="jefe">Jefe de Redes</option>
+          <option value="tecnico">Técnico</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-task')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTask()">Guardar tarea</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDICIÓN DE TAREA -->
+<div class="modal-overlay" id="modal-edit-task">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Editar Tarea</div>
+      <button class="modal-close" onclick="closeModal('modal-edit-task')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <div class="label">Título de la tarea *</div>
+        <input class="input" id="edit-title" maxlength="100">
+      </div>
+      <div class="field">
+        <div class="label">Descripción</div>
+        <textarea class="input" id="edit-desc"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <div class="label">Área / Categoría *</div>
+          <select class="input" id="edit-area">
+            <option value="">Seleccionar…</option>
+            <option>Infraestructura LAN</option>
+            <option>Infraestructura WAN</option>
+            <option>Seguridad de Red</option>
+            <option>Servidores</option>
+            <option>Conectividad WiFi</option>
+            <option>Cableado estructurado</option>
+            <option>Monitoreo y NOC</option>
+            <option>VoIP</option>
+            <option>Backup y Recuperación</option>
+            <option>Documentación</option>
+            <option>Otro</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="label">Prioridad *</div>
+          <select class="input" id="edit-prio">
+            <option value="alta">🔴 Alta</option>
+            <option value="media">🟡 Media</option>
+            <option value="baja">🟢 Baja</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <div class="label">Estado</div>
+          <select class="input" id="edit-status">
+            <option value="todo">Pendiente</option>
+            <option value="prog">En Progreso</option>
+            <option value="obs">Observada</option>
+            <option value="done">Completada</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="label">Fecha de vencimiento</div>
+          <input type="date" class="input" id="edit-due">
+        </div>
+      </div>
+      <div class="field">
+        <div class="label">Asignado a</div>
+        <select class="input" id="edit-assign">
+          <option value="">Sin asignar</option>
+          <option value="jefe">Jefe de Redes</option>
+          <option value="tecnico">Técnico</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-edit-task')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEditedTask()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NUEVA OBSERVACIÓN -->
+<div class="modal-overlay" id="modal-obs">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Nueva Observación</div>
+      <button class="modal-close" onclick="closeModal('modal-obs')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <div class="label">Jefe / Emisor *</div>
+        <input class="input" id="o-jefe" placeholder="Nombre del jefe de redes…">
+      </div>
+      <div class="field">
+        <div class="label">Tarea / Área relacionada</div>
+        <input class="input" id="o-area" placeholder="Ej: Configuración VLAN, Seguridad perimetral…">
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <div class="label">Tipo</div>
+          <select class="input" id="o-tipo">
+            <option value="normal">Normal</option>
+            <option value="critica">Crítica</option>
+          </select>
+        </div>
+        <div class="field">
+          <div class="label">Estado</div>
+          <select class="input" id="o-estado">
+            <option value="pendiente">Pendiente</option>
+            <option value="proceso">En proceso</option>
+            <option value="resuelta">Resuelta</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <div class="label">Observación *</div>
+        <textarea class="input" id="o-text" placeholder="Detalle de la observación…" style="min-height:100px"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-obs')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveObs()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL USUARIOS -->
+<div class="modal-overlay" id="modal-user">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">👥 Crear Usuario</div>
+      <button class="modal-close" onclick="closeModal('modal-user')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <div class="label">Nombre completo</div>
+        <input class="input" id="u-name" placeholder="Ej: Técnico de campo">
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <div class="label">Usuario</div>
+          <input class="input" id="u-username" placeholder="Ej: tecnico2">
+        </div>
+        <div class="field">
+          <div class="label">Contraseña</div>
+          <input type="password" class="input" id="u-pass" placeholder="Crear contraseña">
+        </div>
+      </div>
+      <div class="field">
+        <div class="label">Rol</div>
+        <select class="input" id="u-role">
+          <option value="tecnico">Técnico</option>
+          <option value="admin">Jefe de Redes</option>
+        </select>
+      </div>
+
+      <div class="field" style="margin-top:18px;">
+        <div class="label" id="user-action-label">Crear usuario</div>
+        <table class="user-table" style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th style="text-align:left; padding:6px 0;">Nombre</th>
+              <th style="text-align:left; padding:6px 0;">Usuario</th>
+              <th style="text-align:left; padding:6px 0;">Rol</th>
+              <th style="text-align:left; padding:6px 0;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="user-list"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-user')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveUser()">Guardar usuario</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONFIGURACIÓN -->
+<div class="modal-overlay" id="modal-config">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">⚙️ Configurar Proyecto</div>
+      <button class="modal-close" onclick="closeModal('modal-config')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <div class="label">Nombre del proyecto</div>
+        <input class="input" id="cfg-name" placeholder="Ej: Modernización Red TSJ 2025">
+      </div>
+      <div class="field">
+        <div class="label">Descripción</div>
+        <input class="input" id="cfg-desc" placeholder="Breve descripción del proyecto…">
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <div class="label">Responsable</div>
+          <input class="input" id="cfg-resp" placeholder="Nombre del responsable">
+        </div>
+        <div class="field">
+          <div class="label">Jefe de Redes</div>
+          <input class="input" id="cfg-jefe" placeholder="Nombre del jefe">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <div class="label">Fecha de inicio</div>
+          <input type="date" class="input" id="cfg-inicio">
+        </div>
+        <div class="field">
+          <div class="label">Fecha límite</div>
+          <input type="date" class="input" id="cfg-fin">
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-config')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveConfig()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
